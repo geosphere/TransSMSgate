@@ -1,0 +1,30 @@
+//vi:ts=2:sw=2:ai:et:ft=node:enc=utf-8
+ 
+var soap = require('soap');
+var login = '';
+var passwd = '';
+ 
+var url = 'http://vipsms.net/api/soap.html';
+soap.createClient(url,
+function(err, client) {
+    client.auth({ login: login, passwd: passwd}, function(err, res){
+        if (res.return.code!=0){
+            console.log('Auth is FAIL. Explain', res);
+        }else{
+            var sessid = res.return.message
+            console.log('Session ID is: '+ sessid);
+ 
+            client.getBalance({ suuid: sessid }, function(err, res){
+                if (res.return.code!=0){
+                    console.log('Get balance is FAIL. Explain', res);
+                }else{
+                    console.log('Balance amount: '+res.return.message+' units')
+                }
+            });
+ 
+            client.sendSmsOne({ suuid: sessid, dst_phone: '+380671234567', sign_name: 'sign', message_utf: "Convert text in utf-8"}, function(err, res){
+                console.log('Send message is OK');
+            });
+        }
+    })
+});

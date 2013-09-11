@@ -1,0 +1,59 @@
+#!/usr/local/bin/python
+# vi:ts=2:sw=2:ai:et:ft=python:enc=utf-8
+# -*- coding: utf-8 -*-
+ 
+import pprint
+from types import *
+from SOAPpy import WSDL
+ 
+pp = pprint.PrettyPrinter(indent=4)
+ 
+#Explain of response
+def explain_problem(resp):
+    print("Explain problem:")
+    pp.pprint( "code   : "+str(resp.code))
+    pp.pprint( "message: "+resp.message)
+    if (resp.extend and type(resp.extend) is DictType):
+        print " extend: ";pp.pprint(resp.extend)
+    return
+ 
+#Set to debug input/output protocol to stdout
+#WSDL.Config.debug = 1
+ 
+wsdl = "http://vipsms.net/api/soap.html"
+login = ''
+passwd = ''
+ 
+wsdlObj = WSDL.Proxy(wsdl)
+ 
+try:
+    resp = wsdlObj.auth(login, passwd);
+except Exception, ex:
+    print ex
+ 
+if (resp.code!=0):
+    explain_problem(resp)
+    exit;
+ 
+sessid = resp.message;
+ 
+try:
+    resp =  wsdlObj.getBalance(sessid)
+    if (resp.code!=0):
+        explain_problem(resp)
+        exit;
+ 
+except Exception, ex:
+    print ex
+ 
+print "Balance is:"+resp.message
+ 
+try:
+    resp =  wsdlObj.sendSmsOne(sessid, '+380671234567', 'sign', 'Convert text in utf-8')
+    if (resp.code!=0):
+        explain_problem(resp)
+        raise "Message not sended"
+        exit;
+    print "Success! Message sended"
+except Exception, ex:
+    print ex
